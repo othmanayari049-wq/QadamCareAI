@@ -1,3 +1,15 @@
+## Author
+
+**Mohamed Othman Ayari**  
+Computer Engineering Student  
+Qatar University  
+
+GitHub: [othmanayari049-wq](https://github.com/othmanayari049-wq)  
+Email: othmanayari049@gmail.com  
+
+Project: **QadamCare AI**  
+Role: Project developer, AI system designer, computer-vision pipeline developer, and documentation/reporting workflow designer.
+
 # QadamCare AI
 
 **AI-assisted diabetic-foot screening, monitoring, secondary complication review support, and clinician documentation prototype**
