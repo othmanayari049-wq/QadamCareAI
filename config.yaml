@@ -1,0 +1,30 @@
+project:
+  name: QadamCare AI
+  task: visible foot-ulcer segmentation
+  device: cuda
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  image_size: 256
+
+training:
+  batch_size: 8
+  epochs: 20
+  learning_rate: 0.0001
+  num_workers: 0
+
+models:
+  model_1:
+    name: unet_efficientnet_b0
+    architecture: unet
+    encoder: efficientnet-b0
+  model_2:
+    name: deeplabv3plus_resnet50
+    architecture: deeplabv3plus
+    encoder: resnet50
+
+outputs:
+  models_dir: outputs/models
+  figures_dir: outputs/figures
+  predictions_dir: outputs/predictions
