@@ -54,3 +54,10 @@ QadamCareAI/
 
 # Logs
 *.log
+# Local experimental files
+notebooks/
+test_ollama_vision.py
+test_streamlit.py
+
+# Generated output folders
+outputs/
