@@ -1,8 +1,3 @@
-#Author
-Mohamed Ayari
-Computer Engineering Student
-Qatar University
-##
 # QadamCare AI
 
 **AI-assisted diabetic-foot screening, monitoring, secondary complication review support, and clinician documentation prototype**
