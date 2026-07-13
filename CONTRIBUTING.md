@@ -1,266 +1,86 @@
 # Contributing to QadamCare AI
 
-
-
-Thank you for contributing to QadamCare AI.
-
-
+Thank you for your interest in contributing to **QadamCare AI**.
 
 QadamCare AI is an educational engineering prototype for diabetic-foot visual screening support, follow-up monitoring, clinician-facing documentation, and research-oriented multimodal AI exploration.
 
+Because this project is related to medical imaging and clinical documentation workflows, all contributions must follow strong privacy, safety, and non-diagnostic wording standards.
 
+---
 
-\## Contribution Principles
-
-
+## Contribution Principles
 
 All contributions should support the following goals:
 
+- maintain technical quality
+- improve usability and readability
+- preserve clinical safety wording
+- avoid unsupported medical claims
+- protect privacy and sensitive data
+- keep the system modular and understandable
+- improve documentation and reproducibility
 
+---
 
-\- maintain technical quality
-
-\- preserve clinical safety wording
-
-\- improve readability and usability
-
-\- avoid unsupported medical claims
-
-\- protect privacy and sensitive data
-
-
-
-\## Important Safety Rules
-
-
+## Important Safety Rules
 
 Contributors must not:
 
+- upload patient-identifiable data
+- upload private medical images
+- upload raw restricted datasets without permission
+- upload generated clinical reports containing sensitive data
+- upload API keys, tokens, or secrets
+- claim that the system performs diagnosis
+- claim that the system confirms infection, ischemia, osteomyelitis, Wagner grade, ulcer depth, or treatment decisions
+- remove clinical safety disclaimers from the app, documentation, model card, or reports
 
+QadamCare AI must always be described as a **screening-support and documentation-support prototype**, not as a clinical diagnostic system.
 
-\- upload patient-identifiable data
+---
 
-\- upload private medical images
+## What Can Be Contributed
 
-\- upload raw restricted datasets without permission
+Acceptable contributions include:
 
-\- upload generated clinical reports containing sensitive data
+- code improvements
+- bug fixes
+- user-interface improvements
+- report design improvements
+- documentation improvements
+- model evaluation improvements
+- refactoring and modularization
+- demo workflow improvements
+- explainability features
+- safer clinical wording
+- additional non-diagnostic research-support modules
 
-\- claim the system performs diagnosis
+---
 
-\- claim the system confirms infection, ischemia, osteomyelitis, Wagner grade, ulcer depth, or treatment decisions
+## Recommended Workflow
 
-\- remove clinical safety disclaimers from the app or reports
+Before contributing:
 
+1. Create a new branch or fork the repository.
+2. Make focused changes.
+3. Test the affected feature.
+4. Review the code for readability and safety.
+5. Confirm that no sensitive data is included.
+6. Commit with a clear message.
+7. Open a pull request or share the branch for review.
 
+---
 
-\## What Can Be Contributed
-
-
-
-Examples of acceptable contributions include:
-
-
-
-\- code improvements
-
-\- bug fixes
-
-\- interface improvements
-
-\- report design improvements
-
-\- documentation improvements
-
-\- model evaluation improvements
-
-\- modularization and refactoring
-
-\- demo workflow enhancements
-
-\- explainability features
-
-\- additional non-diagnostic research-support modules
-
-
-
-\## Recommended Workflow
-
-
-
-\- fork the repository or create a branch
-
-\- make focused changes
-
-\- test the affected functionality
-
-\- review code for readability
-
-\- verify that no sensitive data is included
-
-\- submit a pull request or share the branch for review
-
-
-
-\## Branch Naming Suggestions
-
-
+## Branch Naming Suggestions
 
 Use clear branch names such as:
 
-
-
-\- `feature/pdf-report-improvements`
-
-\- `fix/thermal-validation-bug`
-
-\- `docs/readme-update`
-
-\- `refactor/report-engine`
-
-
-
-\## Commit Message Suggestions
-
-
-
-Use professional commit messages, for example:
-
-
-
-\- `Improve PDF report layout`
-
-\- `Fix image quality validation logic`
-
-\- `Add clinical safety issue template`
-
-\- `Refactor thermal inference module`
-
-
-
-\## Coding Expectations
-
-
-
-Please try to keep the code:
-
-
-
-\- clear
-
-\- modular
-
-\- readable
-
-\- well-commented where needed
-
-\- aligned with the project structure
-
-
-
-When possible:
-
-
-
-\- reuse existing helper functions
-
-\- avoid unnecessary duplication
-
-\- keep function names descriptive
-
-\- keep UI wording professional and cautious
-
-
-
-\## Testing Expectations
-
-
-
-Before contributing, test the relevant parts of the system:
-
-
-
-\- Streamlit application loading
-
-\- RGB prediction workflow
-
-\- report generation
-
-\- thermal module behavior if affected
-
-\- local AI documentation features if affected
-
-
-
-\## Documentation Expectations
-
-
-
-If you add a new feature, please also update the relevant documentation:
-
-
-
-\- `README.md`
-
-\- `MODEL\_CARD.md`
-
-\- `docs/ARCHITECTURE.md`
-
-\- demo or setup notes if needed
-
-
-
-\## Privacy and Data Handling
-
-
-
-Do not commit:
-
-
-
-\- datasets
-
-\- patient images
-
-\- model checkpoints unless explicitly approved
-
-\- generated patient reports
-
-\- secrets or API keys
-
-\- virtual environments
-
-\- temporary output folders
-
-
-
-\## Clinical Safety Reminder
-
-
-
-QadamCare AI is an educational engineering prototype only.
-
-
-
-All outputs are intended for screening support, documentation support, and research demonstration. The system is not approved for clinical deployment and must not be presented as a diagnostic tool.
-
-
-
-\## Questions
-
-
-
-If you are unsure whether a contribution is appropriate, please contact the repository owner before pushing major changes.
-
-
-
-\## Maintainer
-
-
-
-\*\*Othman Ayari\*\*  
-
-Computer Engineering Student  
-
-Qatar University
-
+```text
+feature/pdf-report-improvements
+feature/dashboard-ui-cleanup
+fix/thermal-validation-bug
+fix/report-generation-error
+docs/readme-update
+docs/model-card-update
+refactor/report-engine
+refactor/clinical-support-layer
