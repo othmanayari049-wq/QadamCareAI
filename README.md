@@ -1,6 +1,6 @@
 ## Author
   
-Engineering Student  
+Engineering Students
 Qatar University  
 
 GitHub: [othmanayari049-wq](https://github.com/othmanayari049-wq)  
