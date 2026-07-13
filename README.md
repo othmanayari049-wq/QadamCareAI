@@ -1,7 +1,6 @@
 ## Author
-
-**Mohamed Othman Ayari**  
-Computer Engineering Student  
+  
+Engineering Student  
 Qatar University  
 
 GitHub: [othmanayari049-wq](https://github.com/othmanayari049-wq)  
