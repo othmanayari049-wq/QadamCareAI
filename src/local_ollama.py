@@ -8,7 +8,7 @@ from PIL import Image
 
 
 OLLAMA_URL = os.getenv("QADAMCARE_OLLAMA_URL", "http://127.0.0.1:11434/api/chat")
-OLLAMA_TEXT_MODEL = os.getenv("QADAMCARE_OLLAMA_TEXT_MODEL", "qwen2.5vl:3b")
+OLLAMA_TEXT_MODEL = os.getenv("QADAMCARE_OLLAMA_TEXT_MODEL", "qwen2.5:3b")
 OLLAMA_VISION_MODEL = os.getenv("QADAMCARE_OLLAMA_VISION_MODEL", "qwen2.5vl:3b")
 
 _CPU_FIX = (
@@ -21,13 +21,11 @@ _CPU_FIX = (
 
 def _image_to_base64(image_path, max_size=512):
     image_path = Path(image_path)
-
     if not image_path.exists():
         raise FileNotFoundError(f"Image not found: {image_path}")
 
     image = Image.open(image_path).convert("RGB")
     image.thumbnail((max_size, max_size))
-
     buffer = BytesIO()
     image.save(buffer, format="JPEG", quality=80)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
@@ -53,7 +51,7 @@ def _friendly_ollama_error(kind, response):
 
 def _post_chat(payload, kind):
     try:
-        response = requests.post(OLLAMA_URL, json=payload, timeout=600)
+        response = requests.post(OLLAMA_URL, json=payload, timeout=1200)
     except requests.ConnectionError as error:
         raise RuntimeError(
             "Ollama is not reachable at 127.0.0.1:11434. Start it with 'ollama serve' "
@@ -61,7 +59,7 @@ def _post_chat(payload, kind):
         ) from error
     except requests.Timeout as error:
         raise RuntimeError(
-            "Ollama did not finish within 10 minutes. The selected model may be too large "
+            "Ollama did not finish within 20 minutes. The selected model may be too large "
             "for the available RAM/VRAM."
         ) from error
 
@@ -108,9 +106,9 @@ def ask_ollama_text(prompt):
             }
         ],
         "options": {
-            "temperature": 0.1,
-            "num_ctx": 1024,
-            "num_predict": 500,
+            "temperature": 0.15,
+            "num_ctx": 4096,
+            "num_predict": 1800,
         },
     }
     return _post_chat(payload, "text")
@@ -118,7 +116,6 @@ def ask_ollama_text(prompt):
 
 def ask_ollama_vision(prompt, image_paths):
     clean_paths = []
-
     for path in image_paths:
         if path is None:
             continue
@@ -142,8 +139,8 @@ def ask_ollama_vision(prompt, image_paths):
         ],
         "options": {
             "temperature": 0.1,
-            "num_ctx": 1024,
-            "num_predict": 500,
+            "num_ctx": 2048,
+            "num_predict": 900,
         },
     }
     return _post_chat(payload, "vision")
