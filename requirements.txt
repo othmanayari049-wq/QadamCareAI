@@ -12,3 +12,4 @@ ipykernel
 pyyaml
 streamlit
 pillow
+reportlab
