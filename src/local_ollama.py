@@ -10,6 +10,8 @@ from PIL import Image
 OLLAMA_URL = os.getenv("QADAMCARE_OLLAMA_URL", "http://127.0.0.1:11434/api/chat")
 OLLAMA_TEXT_MODEL = os.getenv("QADAMCARE_OLLAMA_TEXT_MODEL", "qwen2.5:3b")
 OLLAMA_VISION_MODEL = os.getenv("QADAMCARE_OLLAMA_VISION_MODEL", "qwen2.5vl:3b")
+TEXT_CONTEXT = int(os.getenv("QADAMCARE_TEXT_CONTEXT", "4096"))
+VISION_CONTEXT = int(os.getenv("QADAMCARE_VISION_CONTEXT", "4096"))
 
 _CPU_FIX = (
     "Ollama's model runner crashed while using CUDA. This is outside Streamlit. "
@@ -19,7 +21,7 @@ _CPU_FIX = (
 )
 
 
-def _image_to_base64(image_path, max_size=512):
+def _image_to_base64(image_path, max_size=448):
     image_path = Path(image_path)
     if not image_path.exists():
         raise FileNotFoundError(f"Image not found: {image_path}")
@@ -27,7 +29,7 @@ def _image_to_base64(image_path, max_size=512):
     image = Image.open(image_path).convert("RGB")
     image.thumbnail((max_size, max_size))
     buffer = BytesIO()
-    image.save(buffer, format="JPEG", quality=80)
+    image.save(buffer, format="JPEG", quality=78, optimize=True)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
@@ -37,6 +39,15 @@ def _friendly_ollama_error(kind, response):
 
     if "device kernel image is invalid" in lower or "cuda error" in lower:
         return RuntimeError(f"Ollama {kind} request failed because the CUDA runner crashed. {_CPU_FIX}")
+
+    if "exceed_context_size_error" in lower or "exceeds the available context size" in lower:
+        context = TEXT_CONTEXT if kind == "text" else VISION_CONTEXT
+        return RuntimeError(
+            f"Ollama {kind} request exceeded the active context window. "
+            f"QadamCare requested {context} tokens, but the running Ollama model/server allocated less. "
+            "Restart Ollama after pulling the latest project update. You can also start it with "
+            "$env:OLLAMA_CONTEXT_LENGTH='4096'; ollama serve."
+        )
 
     if "not found" in lower and "model" in lower:
         model = OLLAMA_TEXT_MODEL if kind == "text" else OLLAMA_VISION_MODEL
@@ -84,6 +95,8 @@ def check_ollama_status():
             "installed_models": installed,
             "text_model": OLLAMA_TEXT_MODEL,
             "vision_model": OLLAMA_VISION_MODEL,
+            "text_context": TEXT_CONTEXT,
+            "vision_context": VISION_CONTEXT,
         }
     except Exception as error:
         return {
@@ -91,6 +104,8 @@ def check_ollama_status():
             "installed_models": [],
             "text_model": OLLAMA_TEXT_MODEL,
             "vision_model": OLLAMA_VISION_MODEL,
+            "text_context": TEXT_CONTEXT,
+            "vision_context": VISION_CONTEXT,
             "message": str(error),
         }
 
@@ -107,8 +122,8 @@ def ask_ollama_text(prompt):
         ],
         "options": {
             "temperature": 0.15,
-            "num_ctx": 4096,
-            "num_predict": 1800,
+            "num_ctx": TEXT_CONTEXT,
+            "num_predict": 1600,
         },
     }
     return _post_chat(payload, "text")
@@ -139,8 +154,8 @@ def ask_ollama_vision(prompt, image_paths):
         ],
         "options": {
             "temperature": 0.1,
-            "num_ctx": 2048,
-            "num_predict": 900,
+            "num_ctx": VISION_CONTEXT,
+            "num_predict": 600,
         },
     }
     return _post_chat(payload, "vision")
