@@ -10,3 +10,5 @@ tqdm
 notebook
 ipykernel
 pyyaml
+streamlit
+pillow
