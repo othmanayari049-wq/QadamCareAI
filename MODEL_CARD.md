@@ -1,301 +1,314 @@
-# Model Card: QadamCare AI
+# Model Card: QadamCare AI Multimodal Prototype
 
-## Model Name
+## Overview
 
-**QadamCare AI RGB Diabetic-Foot Segmentation Model**
+QadamCare AI is a local educational engineering and research prototype that combines multiple independent computer-vision and documentation modules. It is not one universal medical model.
 
----
+The system currently contains:
 
-## Project Summary
+1. FUSeg-derived close-up RGB ulcer-like segmentation
+2. STANDUP paired plantar RGB + grayscale thermal fusion classification
+3. Relative thermal monitoring-zone visualisation
+4. A separate pseudo-colour thermal research classifier
+5. Rule-based review pathways
+6. Local Ollama LLM/VLM documentation modules
 
-QadamCare AI is an educational engineering prototype designed to support diabetic-foot visual screening, follow-up monitoring, secondary complication review support, and clinician-facing documentation.
+> **Safety notice:** The system is not a medical device and has not been clinically validated. It does not diagnose diabetes, diabetic-foot ulcer, infection, ischemia, osteomyelitis, wound depth, severity, future ulcer location, or treatment need.
 
-The core model performs RGB image segmentation to identify visible wound-like or ulcer-like regions in diabetic-foot images. The model output is combined with image-quality checks, clinician-entered findings, previous-visit comparison, and report-generation tools.
+## Intended use
 
-> **Medical safety notice:** QadamCare AI is not a diagnostic system. It does not confirm infection, ischemia, osteomyelitis, ulcer depth, Wagner grade, amputation risk, or treatment decisions. All outputs require review by a qualified healthcare professional.
+Permitted research uses include:
 
----
+- supervised engineering demonstration
+- workflow and user-interface evaluation
+- image segmentation research
+- paired RGB/thermal pattern-classification research
+- relative thermal visualisation
+- documentation and report-generation experiments
+- clinician-supervised research discussion
 
-## Intended Use
+Every output requires human review.
 
-This model is intended for educational engineering research and prototype demonstration. It supports segmentation of visible wound-like or ulcer-like regions in RGB diabetic-foot images.
+## Out-of-scope use
 
-The model output is used for:
+Do not use QadamCare AI for:
 
-- visual segmentation support
-- mask and overlay generation
-- wound-like area estimation in pixels
-- clinician-facing documentation support
-- prototype review-priority support
-- follow-up comparison support when previous visit data is provided
+- patient self-diagnosis
+- autonomous diabetes diagnosis
+- emergency or clinical triage
+- treatment selection
+- medication, antibiotics, dressing, debridement, or surgery decisions
+- ulcer-depth or severity grading
+- infection, ischemia, osteomyelitis, gangrene, or sepsis confirmation
+- amputation-risk or prognosis prediction
+- exact future-ulcer-location prediction
+- unsupervised hospital deployment
 
-The model is not intended for autonomous clinical diagnosis.
+## Workflow 1: close-up RGB ulcer-like segmentation
 
----
+### Input contract
 
-## Out-of-Scope Use
+- one close-up, normal RGB foot/wound image
+- sufficient resolution, brightness, focus, and contrast
+- no full-person scene, face-dominant image, or thermal image
 
-This model must not be used to:
+### Architecture
 
-- diagnose diabetic-foot ulcer severity
-- diagnose infection
-- diagnose ischemia
-- diagnose osteomyelitis
-- determine ulcer depth
-- confirm Wagner grade
-- predict amputation risk
-- prescribe treatment
-- replace clinician judgment
-- make emergency or triage decisions without clinician review
+- task: binary segmentation
+- architecture: U-Net
+- encoder/backbone: EfficientNet-B0
+- inference size: 256 × 256
+- output: probability map and thresholded visible wound-like mask
 
----
+### Development dataset
 
-## Model Architecture
+FUSeg-derived local development split:
 
-The RGB segmentation model uses:
-
-- **Architecture:** U-Net
-- **Backbone:** EfficientNet-B0
-- **Task:** Binary segmentation
-- **Input:** RGB foot image
-- **Output:** Binary mask of visible wound-like / ulcer-like region
-- **Input size during inference:** 256 × 256 pixels
-
-The model predicts a probability map. A threshold is applied to generate a binary mask.
-
-The generated mask is used to create:
-
-- AI overlay image
-- visible wound-like area estimate
-- lesion count
-- confidence score
-- clinician-facing visual documentation
-
----
-
-## Dataset
-
-The RGB segmentation model was trained using the **Foot Ulcer Segmentation Challenge** dataset.
-
-Local project split used during development:
-
-| Split | Images | Labels |
+| Split | Images | Masks used |
 |---|---:|---:|
 | Training | 810 | 810 |
-| Validation / held-out evaluation | 200 | 200 |
-| Test images | 200 | Not used for reported mask metrics |
+| Validation | 200 | 200 |
+| Test images | 200 | Not used for the reported mask metrics |
 
-The repository does not include the dataset because medical image datasets may have licensing, privacy, and distribution restrictions.
+The repository does not redistribute the dataset.
 
----
-
-## Internal Evaluation
-
-The following metrics are from internal held-out validation evaluation on 200 labeled validation images.
+### Internal validation
 
 | Metric | Value |
 |---|---:|
-| Mean Dice | 0.7903 |
-| Mean IoU | 0.7018 |
-| Mean Precision | 0.8557 |
-| Mean Recall | 0.8147 |
+| Dice | 0.7903 |
+| IoU | 0.7018 |
+| Precision | 0.8557 |
+| Recall | 0.8147 |
 
-These values represent prototype segmentation performance on the internal validation split. They do not represent clinical validation.
+These are internal held-out engineering metrics, not clinical-performance measures.
 
----
+### Outputs
 
-## Performance Interpretation
+- visible ulcer-like mask and overlay
+- detected-region count
+- estimated area in pixels
+- area percentage of analysed image
+- dominant image zone
+- confidence proxy
 
-The internal validation results suggest that the segmentation model can identify many visible wound-like regions in the development dataset. However, the model performance may vary depending on:
+### Known limitations
 
-- image quality
-- lighting condition
-- camera angle
-- focus and blur
-- background
-- skin tone representation
-- wound appearance
-- annotation quality
-- dataset distribution
-- image capture protocol
+- false positives on backgrounds, faces, skin-like objects, shadows, and out-of-distribution scenes
+- no wound-depth measurement
+- no tissue classification
+- no infection, ischemia, or osteomyelitis diagnosis
+- pixel area is not physical wound area without validated calibration
+- image-coordinate zones are not validated anatomical localisation
 
-The model should be interpreted as a prototype computer-vision component, not a clinical decision system.
+## Workflow 2: STANDUP paired RGB + grayscale thermal fusion
 
----
+### Input contract
 
-## Optional Thermal Research Extension
+- one plantar RGB image
+- one matching grayscale/monochrome thermal image
+- both images from the same participant/capture context
+- pseudo-colour thermal images are not accepted by this workflow
 
-QadamCare AI also includes an optional thermography research extension.
+### Architecture
 
-The thermal module is separate from the RGB segmentation model. It is included to demonstrate possible multimodal research direction, not validated clinical diagnosis.
+- two EfficientNet-B0 branches
+- one branch for RGB, one for grayscale thermal represented as three channels
+- concatenated features
+- binary output
 
-Thermal module development dataset summary:
+### Dataset and grouping
 
-| Group | Images | Patients |
+Local paired dataset summary:
+
+| Group | Paired samples |
+|---|---:|
+| Healthy/control | 125 |
+| Diabetic groups combined | 290 |
+| Total | 415 |
+
+Local grouping logic represented 227 patient/group identifiers. Splitting was patient/group-wise to reduce direct leakage.
+
+### Internal single-split evaluation
+
+| Metric | Value |
+|---|---:|
+| Accuracy | 1.0000 |
+| Precision | 1.0000 |
+| Sensitivity/recall | 1.0000 |
+| Specificity | 1.0000 |
+| F1 | 1.0000 |
+| ROC-AUC | 1.0000 |
+
+Test split: 65 paired samples from 35 patient/groups, with TN=21, FP=0, FN=0, TP=44.
+
+### Required interpretation
+
+The output is only:
+
+- `dataset-defined healthy/control-like image pattern`, or
+- `dataset-defined diabetic-foot-like image pattern`.
+
+It is **not** a diabetes diagnosis. A healthy/control-like image pattern does not prove that a person is healthy or does not have diabetes. A diabetic-foot-like image pattern does not prove diabetes or diabetic foot.
+
+### Major limitations
+
+- small public research dataset
+- one patient-wise split can produce unstable or optimistic performance
+- possible dataset, camera, background, acquisition, or preprocessing shortcuts
+- no grouped cross-validation reported yet
+- no external clinical validation
+- matching of real-world RGB and thermal images is not cryptographically or clinically verified
+- no calibrated temperature values
+
+Before any strong performance claim, run grouped cross-validation, multiple random seeds, patient-level aggregation, explainability/bias checks, and external testing.
+
+## Experimental R0/R1/R2 classification
+
+The diabetic subset contains dataset-defined R0, R1, and R2 groups. Several approaches were tested, including fusion EfficientNet-B0, thermal-only EfficientNet-B0, and handcrafted thermal-recovery features.
+
+Best early result remained weak:
+
+| Model | Accuracy | Macro-F1 |
 |---|---:|---:|
-| DM Group | 244 | 122 |
-| Control Group | 89 | 45 |
-| Total | 333 | 167 |
+| Initial RGB+thermal fusion | 0.4318 | 0.4120 |
+| Improved fusion | 0.2727 | 0.2462 |
+| Thermal-only deep model | 0.2955 | 0.3094 |
+| Thermal-recovery features | 0.3182 | 0.3222 |
 
-Patient-level split used during development:
+The module is experimental and should not be presented as reliable. It is excluded from the primary product claim.
 
-| Split | Images | Patients |
-|---|---:|---:|
-| Train | 232 | 116 |
-| Validation | 49 | 25 |
-| Test | 52 | 26 |
+## Workflow 3: pseudo-colour thermal research analysis
 
-Internal thermal test performance at selected threshold:
+This is a separate thermal-only workflow for pseudo-coloured plantar thermograms. It is not interchangeable with STANDUP grayscale thermal images.
 
-| Evaluation | Accuracy | Precision | Recall | F1 | AUC |
-|---|---:|---:|---:|---:|---:|
-| Patient-level test | 0.9231 | 0.9048 | 1.0000 | 0.9500 | 0.9549 |
+Potential outputs include:
 
-The thermal module predicts dataset-defined thermal-pattern groups only. It does not diagnose diabetes, infection, ischemia, tissue temperature abnormality, ulcer severity, or vascular disease.
+- dataset-defined thermal pattern probability
+- attention map/overlay
+- relative display-intensity measurements
 
----
+Limitations:
 
-## Inputs
+- pseudo-colour values depend on the camera/display colour map
+- they are not automatically degrees Celsius
+- attention maps are not anatomical or clinical ground truth
+- the workflow does not diagnose diabetes, ischemia, infection, or vascular disease
 
-### Required Input
+## Relative monitoring-zone visualisation
 
-- RGB foot image in `.jpg`, `.jpeg`, or `.png` format
+Monitoring zones use relative image intensity and derived measurements such as:
 
-### Optional Inputs
+- high-monitoring ratio
+- medium-monitoring ratio
+- left-right asymmetry score
+- dominant image zone
 
-- previous visit area in pixels
-- previous visit note
-- clinician-entered findings
-- thermal image for research extension
-- measurement calibration value in pixels per centimetre
+The labels `LOW_MONITORING`, `MEDIUM_MONITORING`, and `HIGH_MONITORING` are prototype visualisation categories. They do not represent validated clinical risk classes, future-ulcer probability, or treatment priority.
 
----
+## Rule-based review pathways
 
-## Outputs
+Clinician/user-entered findings may be combined with valid workflow outputs to generate review flags for:
 
-The model and app can produce:
+- infection-related review
+- vascular/perfusion review
+- delayed-healing review
+- bone-involvement review
+- escalation priority
 
-- predicted binary mask
-- AI overlay image
-- visible wound-like region count
-- predicted wound-like area in pixels
-- confidence score
-- image-quality result
-- prototype review level
-- previous-visit area comparison
-- complication pathway review-support output
-- clinician-facing Markdown report
-- clinician-facing PDF report
-- text report summary
+These are deterministic rules, not trained clinical diagnosis models. A positive probe-to-bone or other serious finding must be verified clinically.
 
----
+## LLM/VLM documentation modules
 
-## Clinical Support Components
+Configured local models may include:
 
-The application includes additional rule-based support modules around the segmentation model:
+- text model: `qwen2.5:3b`
+- vision-language model: `qwen2.5vl:3b`
 
-| Component | Purpose |
-|---|---|
-| Image-quality assessment | Checks resolution, blur, brightness, and contrast |
-| Feature extraction | Extracts visible region count, area, and confidence |
-| Review-level estimation | Estimates prototype review priority |
-| Clinical input summary | Summarizes pain, redness, swelling, warmth, discharge, fever, neuropathy, vascular disease, and probe-to-bone finding |
-| Previous-visit comparison | Compares current and previous wound-like area in pixels |
-| Advanced support logic | Provides structured review-support notes |
-| Secondary pathway support | Highlights possible infection-review, vascular-review, delayed-healing, or bone-involvement review pathways |
-| Report generation | Produces Markdown, PDF, and text reports |
+Their role is documentation support. Generated text may hallucinate, contradict inputs, confuse absent and missing information, or overinterpret model outputs.
 
-These components are designed for documentation and review support only.
+Safety requirements:
 
----
+- structured application data is the factual source
+- user-entered diabetes history must remain separate from image classification
+- every generative section must be labelled as generated
+- AI narratives must not prescribe treatment or establish diagnosis
+- a new case must regenerate narratives rather than reuse stale text
 
-## Limitations
+## Data, privacy, and redistribution
 
-Important limitations include:
+The repository intentionally excludes:
 
-1. The model is not clinically validated.
-2. The model only analyzes visible RGB image information.
-3. It does not assess wound depth.
-4. It does not diagnose infection, ischemia, osteomyelitis, neuropathy, or vascular disease.
-5. It does not confirm Wagner grade.
-6. It does not predict amputation risk.
-7. Area is reported in pixels unless calibration is provided.
-8. Image-coordinate localization is not validated anatomical localization.
-9. Thermal outputs are research-support only.
-10. The complication pathway module is rule-based and not clinically validated.
-11. Performance may decrease on images outside the training distribution.
-12. Clinical review is required for every output.
-
----
-
-## Ethical and Safety Considerations
-
-Medical AI systems require careful evaluation before clinical use. QadamCare AI includes safety wording throughout the app and reports to reduce the risk of overclaiming.
-
-Any future clinical use would require:
-
-- ethical approval
-- clinician-supervised validation
-- privacy review
-- data governance review
-- cybersecurity review
-- regulatory assessment
-- prospective clinical testing
-- deployment monitoring
-- documentation of failure modes
-
-The system is designed to support documentation and review prioritization, not independent diagnosis.
-
----
-
-## Data and Privacy
-
-The GitHub repository intentionally excludes:
-
+- medical datasets
 - patient images
-- raw datasets
-- generated reports
-- trained model checkpoints
-- private clinical data
-- temporary outputs
-- local virtual environment files
+- generated patient reports
+- model checkpoints
+- secrets and local configuration
 
-These exclusions help reduce privacy, licensing, and storage risks.
+Dataset access and checkpoint redistribution are controlled by their original licences, consent conditions, and institutional rules. The repository’s MIT licence covers only original code and documentation unless stated otherwise.
 
-Large model weights should be stored separately through controlled institutional storage, GitHub Releases, Git LFS, or another approved mechanism after confirming dataset and licensing permissions.
+## Bias and fairness considerations
 
----
+Possible performance differences may arise from:
 
-## Recommended Use
+- skin-tone representation
+- age and sex distribution
+- camera and thermal-device differences
+- acquisition environment
+- foot positioning
+- wound type and stage
+- comorbidities
+- image background and compression
+- class imbalance
 
-Recommended use is limited to:
+No subgroup fairness analysis or clinical generalisability assessment has been completed.
 
-- academic demonstration
-- engineering prototype evaluation
-- computer-vision research discussion
-- clinical documentation workflow exploration
-- supervised research settings
+## Failure modes
 
----
+Known or plausible failure modes include:
 
-## Not Recommended For
+- wrong workflow selected
+- full-person RGB image falsely segmented
+- pseudo-colour image sent to grayscale fusion model
+- unmatched RGB and thermal pair
+- missing or incompatible checkpoint
+- poor image quality
+- background intensity classified as a hotspot
+- generative report contradicting validated model output
+- sidebar history mistaken for image-derived information
+- stale session-state narrative reused for another case
 
-This project is not recommended for:
+The application includes gates for several of these conditions, but the gates are not guaranteed to catch every misuse.
 
-- real clinical deployment
-- unsupervised patient use
-- emergency triage
-- treatment planning
-- diagnosis confirmation
-- medical decision-making without clinician review
-
----
-
-## Model Status
+## Validation and deployment status
 
 ```text
-Prototype segmentation model implemented
-Internal validation completed
-Professional app integration completed
-Clinical deployment not approved
-External clinical validation not completed
+Engineering prototype: implemented
+Internal model evaluation: partially completed
+Workflow input routing: implemented
+External validation: not completed
+Prospective clinical validation: not completed
+Cybersecurity assessment: not completed
+Regulatory review: not completed
+Hospital deployment approval: none
+```
+
+## Required future work
+
+- grouped cross-validation and multiple seeds
+- external multi-centre evaluation
+- calibrated thermal data where temperature claims are needed
+- subgroup and bias analysis
+- uncertainty and calibration evaluation
+- failure-mode testing
+- clinician usability study
+- secure data architecture
+- privacy impact assessment
+- regulatory and clinical-governance review
+
+## Contact
+
+Othman Ayari  
+Computer Engineering, Qatar University  
+GitHub: `@othmanayari049-wq`  
+Email: `othmanayari049@gmail.com`
