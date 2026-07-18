@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: QadamCare AI Documentation
-    url: https://github.com/othmanayari049-wq/QadamCareAI
-    about: Please review the README, architecture document, and model card before opening an issue.
+  - name: Read the project documentation
+    url: https://github.com/othmanayari049-wq/QadamCareAI#readme
+    about: Review the current workflows, setup instructions, model limits, and interpretation rules before opening an issue.
+  - name: Security or private-data concern
+    url: mailto:othmanayari049@gmail.com
+    about: Report exposed secrets, patient-identifiable data, or sensitive security details privately. Do not open a public issue.
+  - name: Model card and clinical limitations
+    url: https://github.com/othmanayari049-wq/QadamCareAI/blob/main/MODEL_CARD.md
+    about: Check intended use, performance limits, failure modes, and non-diagnostic scope.

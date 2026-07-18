@@ -1,110 +1,112 @@
-\---
-
+---
 name: Feature request
-
-about: Suggest an improvement or new feature for QadamCare AI
-
-title: "\[Feature] "
-
+about: Propose a safe, testable improvement to QadamCare AI
+title: "[Feature] "
 labels: enhancement
-
 assignees: ""
+---
 
-\---
+> [!NOTE]
+> QadamCare AI is a non-diagnostic research prototype. Proposed features must preserve workflow separation, privacy, cautious medical wording, and clinician review.
 
+## Feature summary
 
+Give the feature a short name and describe it in one paragraph.
 
-\## Feature Title
+## Problem or need
 
+What limitation, user need, research question, or engineering problem does this address?
 
+## Proposed behaviour
 
-Provide a short feature name.
+Describe the expected workflow from input to output.
 
+```text
+Input
+  ↓
+Validation / routing
+  ↓
+Processing
+  ↓
+Output
+```
 
+## Affected area
 
-\## Problem or Need
+Select all that apply:
 
+- [ ] Professional Streamlit application
+- [ ] Visible ulcer-like RGB segmentation
+- [ ] STANDUP paired RGB + grayscale thermal analysis
+- [ ] Pseudo-colour thermal research workflow
+- [ ] Image-quality or modality validation
+- [ ] Relative thermal monitoring zones
+- [ ] Follow-up comparison
+- [ ] Rule-based review pathways
+- [ ] Local LLM documentation
+- [ ] Local VLM documentation
+- [ ] PDF/report generation
+- [ ] Training, evaluation, or cross-validation
+- [ ] Privacy or security
+- [ ] Documentation or repository governance
+- [ ] Other
 
+## Intended users
 
-What problem does this feature solve?
+Who benefits from this feature?
 
+- [ ] Student or researcher
+- [ ] Software developer
+- [ ] Clinician reviewing a supervised demonstration
+- [ ] Project maintainer
+- [ ] Other
 
+## Expected benefit
 
-\## Proposed Solution
+Explain the expected improvement in usability, reproducibility, safety, documentation, research value, or technical performance.
 
+## Evidence and data requirements
 
+- Does this require a new dataset?
+- Is the dataset public and redistributable?
+- Are consent, ethics, privacy, and licence terms known?
+- Does it require longitudinal labels, calibration, clinical ground truth, or external validation?
+- What baseline and metrics should be used?
 
-Describe the feature you want to add.
+Do not propose uploading restricted medical data to the repository.
 
+## Safety and interpretation risks
 
+Could the feature:
 
-\## Expected Benefit
+- imply diagnosis or treatment?
+- confuse diabetes history with an image-pattern result?
+- mix incompatible RGB or thermal inputs?
+- turn relative thermal intensity into a temperature claim?
+- imply future ulcer prediction without longitudinal labels?
+- expose patient information?
+- cause LLM/VLM-generated text to override validated outputs?
 
+Explain the safeguards, blocking rules, disclaimers, and clinician-review requirements.
 
+## Acceptance criteria
 
-Explain how this feature would improve:
+List objective conditions that would show the feature is complete.
 
+- [ ] 
+- [ ] 
+- [ ] 
 
+Include tests for incorrect inputs and failure cases, not only the successful path.
 
-\- usability
+## Alternatives considered
 
-\- engineering quality
+Describe simpler or safer alternatives and why the proposed solution is preferable.
 
-\- documentation
+## Mockups, references, or examples
 
-\- visual analysis
+Attach only non-sensitive examples. Include papers, documentation, or diagrams when relevant.
 
-\- clinical support workflow
+## Additional context
 
-\- research value
-
-
-
-\## Affected Area
-
-
-
-Select the main area:
-
-
-
-\- RGB segmentation
-
-\- thermal module
-
-\- clinical inputs
-
-\- report generation
-
-\- PDF export
-
-\- local AI copilot
-
-\- dashboard UI
-
-\- documentation
-
-\- repository organization
-
-\- other
-
-
-
-\## Safety Consideration
-
-
-
-Could this feature create a risk of overclaiming or unsafe medical interpretation?
-
-
-
-If yes, explain how it should be limited or worded.
-
-
-
-\## Additional Notes
-
-
-
-Add mockups, ideas, or examples if helpful.
-
+Mention dependencies, expected hardware requirements, model size, performance constraints, or related issues.
