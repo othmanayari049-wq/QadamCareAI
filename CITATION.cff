@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use QadamCare AI, please cite this software and separately cite every dataset and publication used in your experiment."
+title: "QadamCare AI"
+type: software
+authors:
+  - family-names: "Ayari"
+    given-names: "Othman"
+    email: "othmanayari049@gmail.com"
+    affiliation: "Qatar University"
+repository-code: "https://github.com/othmanayari049-wq/QadamCareAI"
+url: "https://github.com/othmanayari049-wq/QadamCareAI"
+version: "0.3.0-prototype"
+date-released: "2026-07-18"
+license: "MIT"
+abstract: >-
+  QadamCare AI is an educational engineering and research prototype for
+  workflow-safe RGB and thermal foot-image analysis, relative monitoring-zone
+  visualisation, visible ulcer-like segmentation, and local AI-assisted
+  documentation. It is not a diagnostic medical device and has not undergone
+  clinical or regulatory validation.
+keywords:
+  - medical imaging
+  - diabetic foot
+  - computer vision
+  - thermal imaging
+  - segmentation
+  - multimodal AI
+  - clinical documentation
