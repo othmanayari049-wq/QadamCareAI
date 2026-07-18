@@ -1,3 +1,6 @@
+# QadamCare AI prototype runtime and research dependencies
+# Python 3.11 or 3.12 is recommended. Pin exact versions before any reproducible release.
+
 torch
 torchvision
 opencv-python
@@ -13,3 +16,5 @@ pyyaml
 streamlit
 pillow
 reportlab
+requests
+numpy
