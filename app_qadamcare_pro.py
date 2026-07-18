@@ -1,9 +1,28 @@
 from datetime import datetime
 from pathlib import Path
+import runpy
 
-# Execute the validated unified application first. This preserves the full sidebar,
-# workflow routing, model validation, Markdown/PDF downloads, and LLM/VLM controls.
-from app_unified import *  # noqa: F401,F403
+import streamlit as st
+
+
+# Streamlit reruns the entry script after every interaction. Importing app_unified as a
+# normal Python module caused its UI to disappear on later reruns because Python cached
+# the imported module. run_path executes the validated base application every time.
+BASE_APP = Path(__file__).resolve().with_name("app_unified.py")
+
+try:
+    base = runpy.run_path(str(BASE_APP), run_name="qadamcare_unified_runtime")
+except Exception as error:
+    st.error("QadamCare could not load the validated base application.")
+    st.exception(error)
+    st.stop()
+
+
+# Reuse the already executed base app state and functions without importing it again.
+APP_OUTPUTS = base["APP_OUTPUTS"]
+SAFETY_TEXT = base["SAFETY_TEXT"]
+polish_report_with_llm = base["polish_report_with_llm"]
+build_multimodal_summary = base["build_multimodal_summary"]
 
 from intelligent_pdf_report import generate_intelligent_pdf_report
 from local_ollama import OLLAMA_TEXT_MODEL, OLLAMA_VISION_MODEL
