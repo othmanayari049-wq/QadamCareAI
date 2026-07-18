@@ -1,4 +1,4 @@
-﻿# Python cache
+# Python cache and tooling
 __pycache__/
 *.py[cod]
 *.pyo
@@ -6,6 +6,9 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Virtual environments
 .venv/
@@ -18,46 +21,69 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Streamlit secrets
-.streamlit/secrets.toml
-
-# Environment files
+# Secrets and environment configuration
 .env
 .env.*
+!.env.example
+.streamlit/secrets.toml
+*.pem
+*.key
+*.p12
+*.pfx
 
-# Datasets - do not upload medical datasets
+# Datasets and medical images
 data/
+datasets/
+private_data/
 *.png
 *.jpg
 *.jpeg
 *.bmp
 *.tif
 *.tiff
+*.dicom
+*.dcm
 
-# Generated outputs and reports
-outputs/app_reports/
-outputs/reports/
-outputs/temp/
+# Generated outputs, reports, and temporary case material
+outputs/
+reports/
+app_reports/
+temp/
+tmp/
 *.pdf
 *.docx
+*.xlsx
+*.csv
+*.jsonl
 
-# Model checkpoints - do not upload large trained weights to GitHub
-outputs/models/
-outputs/thermal/models/
+# Model checkpoints and exported models
 *.pth
 *.pt
 *.ckpt
 *.onnx
+*.pkl
+*.joblib
+*.safetensors
 
-# Local duplicate or backup project folders
-QadamCareAI/
+# Local databases and caches
+*.db
+*.sqlite
+*.sqlite3
+.cache/
 
-# Logs
+# Logs and crash dumps
 *.log
-# Local experimental files
+*.dmp
+crash-*.txt
+
+# Notebook checkpoints and local experiments
+.ipynb_checkpoints/
 notebooks/
 test_ollama_vision.py
 test_streamlit.py
 
-# Generated output folders
-outputs/
+# Local duplicate or backup project folders
+QadamCareAI/
+*~
+*.bak
+*.backup
