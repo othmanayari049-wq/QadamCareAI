@@ -6,8 +6,8 @@ import streamlit as st
 
 
 # Streamlit reruns the entry script after every interaction. Execute the validated base
-# app from source on every rerun, while applying a small safety patch to the patient
-# history field. The image model never diagnoses diabetes.
+# app from source on every rerun while applying safety corrections that keep the
+# professional interface aligned with the verified datasets and checkpoints.
 BASE_APP = Path(__file__).resolve().with_name("app_unified.py")
 
 try:
@@ -48,6 +48,41 @@ try:
         1,
     )
 
+    # The repository contains legacy pseudo-colour thermal code, but the available
+    # project evidence does not establish that its checkpoint was trained on a genuine
+    # pseudo-colour dataset. The verified STANDUP data use matched plantar RGB and
+    # monochrome/grayscale thermal images. Hide the unverified path from the professional
+    # interface until dataset provenance, training code, checkpoint metadata, and local
+    # tests are documented.
+    old_workflow_radio = '''workflow = st.radio(
+    "Select analysis workflow",
+    [WORKFLOW_ULCER, WORKFLOW_STANDUP, WORKFLOW_PSEUDOCOLOR],
+    horizontal=True,
+)'''
+    new_workflow_radio = '''st.info(
+    "Verified professional workflows: (1) close-up RGB ulcer-like segmentation and "
+    "(2) matched STANDUP plantar RGB + grayscale thermal fusion. The legacy "
+    "pseudo-colour thermal path is disabled pending dataset/checkpoint provenance."
+)
+workflow = st.radio(
+    "Select analysis workflow",
+    [WORKFLOW_ULCER, WORKFLOW_STANDUP],
+    horizontal=True,
+)'''
+
+    if old_workflow_radio not in source:
+        raise RuntimeError(
+            "The expected workflow selector was not found in app_unified.py. "
+            "The professional safety patch cannot be applied."
+        )
+    source = source.replace(old_workflow_radio, new_workflow_radio, 1)
+
+    source = source.replace(
+        "Unified, workflow-safe diabetic-foot screening-support and documentation platform",
+        "Verified RGB segmentation and paired RGB–grayscale thermal research platform",
+        1,
+    )
+
     base = {
         "__file__": str(BASE_APP),
         "__name__": "qadamcare_unified_runtime",
@@ -82,6 +117,7 @@ def _ai_safe_markdown(result):
 - A STANDUP diabetic-foot-like image-pattern result does not diagnose diabetes or diabetic foot.
 - Describe diabetes only as user-entered history. Never rewrite the image-pattern result as the person's diabetes status.
 - A finding entered as No is explicitly reported absent; it is not missing information.
+- The professional app does not expose the legacy pseudo-colour thermal path because its dataset/checkpoint provenance has not yet been verified.
 """
     return base_report + distinction
 
