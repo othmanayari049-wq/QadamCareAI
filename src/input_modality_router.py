@@ -38,6 +38,8 @@ def inspect_image(image_path):
 
     mean_saturation = float(hsv[:, :, 1].mean())
     intensity_std = float(gray.std())
+    mean_brightness = float(gray.mean())
+    blur_score = float(cv2.Laplacian(gray, cv2.CV_64F).var())
     channel_difference = float(
         (
             np.mean(np.abs(red.astype(np.float32) - green.astype(np.float32)))
@@ -78,7 +80,9 @@ def inspect_image(image_path):
             "width": int(width),
             "height": int(height),
             "mean_saturation": round(mean_saturation, 2),
+            "mean_brightness": round(mean_brightness, 2),
             "intensity_variation": round(intensity_std, 2),
+            "blur_score": round(blur_score, 2),
             "mean_channel_difference": round(channel_difference, 2),
             "mean_channel_correlation": round(mean_channel_correlation, 4),
         },
@@ -101,9 +105,7 @@ def validate_standup_thermal(image_path):
 
     metrics = inspection["metrics"]
     if inspection["image_type"] != THERMAL_STANDUP_GRAYSCALE:
-        warnings.append(
-            "This is not a STANDUP-style monochrome thermal image."
-        )
+        warnings.append("This is not a STANDUP-style monochrome thermal image.")
     if metrics["width"] < 128 or metrics["height"] < 128:
         warnings.append("Image resolution is too low.")
     if metrics["intensity_variation"] < 12:
@@ -122,9 +124,7 @@ def validate_standup_thermal(image_path):
         "warnings": warnings,
         "metrics": metrics,
         "recommended_pipeline": "STANDUP RGB + thermal fusion",
-        "safety_note": (
-            "Format validation does not prove camera calibration or clinical validity."
-        ),
+        "safety_note": "Format validation does not prove camera calibration or clinical validity.",
     }
 
 
@@ -144,9 +144,7 @@ def validate_pseudocolor_thermal(image_path):
 
     metrics = inspection["metrics"]
     if inspection["image_type"] != THERMAL_PSEUDOCOLOR:
-        warnings.append(
-            "This is not a pseudo-coloured plantar thermogram."
-        )
+        warnings.append("This is not a pseudo-coloured plantar thermogram.")
     if metrics["width"] < 128 or metrics["height"] < 128:
         warnings.append("Image resolution is too low.")
     if metrics["intensity_variation"] < 12:
@@ -165,37 +163,64 @@ def validate_pseudocolor_thermal(image_path):
         "warnings": warnings,
         "metrics": metrics,
         "recommended_pipeline": "Pseudo-colour thermal-only classifier / attention map",
-        "safety_note": (
-            "Colour values are display intensities unless calibrated raw temperature data are available."
-        ),
+        "safety_note": "Colour values are display intensities unless calibrated raw temperature data are available.",
     }
 
 
 def detect_faces(image_path):
-    """Detect obvious faces to prevent full-person photos entering the FUSeg model."""
+    """Best-effort face gate that never crashes the analysis workflow.
+
+    Some broken or conflicting OpenCV installations expose basic image operations but
+    omit CascadeClassifier or cv2.data. In that case the face check is marked unavailable
+    and the remaining validation continues instead of failing the whole analysis.
+    """
+    result = {
+        "faces": [],
+        "available": False,
+        "warning": None,
+    }
+
     image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
     if image is None:
-        return []
+        result["warning"] = "Face-screening check was unavailable because the image could not be read."
+        return result
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    detector = cv2.CascadeClassifier(cascade_path)
-    if detector.empty():
-        return []
+    cascade_class = getattr(cv2, "CascadeClassifier", None)
+    cv2_data = getattr(cv2, "data", None)
+    haar_root = getattr(cv2_data, "haarcascades", None) if cv2_data is not None else None
+    if cascade_class is None or not haar_root:
+        result["warning"] = (
+            "Optional face-screening check was skipped because this OpenCV installation "
+            "does not include the Haar-cascade components."
+        )
+        return result
 
-    faces = detector.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-    )
-    return [tuple(int(value) for value in face) for face in faces]
+    try:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        cascade_path = str(Path(haar_root) / "haarcascade_frontalface_default.xml")
+        detector = cascade_class(cascade_path)
+        if detector.empty():
+            result["warning"] = "Optional face-screening model could not be loaded."
+            return result
+
+        faces = detector.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+        )
+        result["faces"] = [tuple(int(value) for value in face) for face in faces]
+        result["available"] = True
+        return result
+    except Exception as error:
+        result["warning"] = f"Optional face-screening check was skipped: {error}"
+        return result
 
 
 def validate_wound_rgb(image_path):
     """Applicability gate for the FUSeg close-up wound segmentation model."""
-    image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
-    if image is None:
+    inspection = inspect_image(image_path)
+    if not inspection["readable"]:
         return {
             "is_valid": False,
             "status": "FAIL",
@@ -204,47 +229,66 @@ def validate_wound_rgb(image_path):
             "metrics": {},
         }
 
-    height, width = image.shape[:2]
+    metrics = inspection["metrics"]
     warnings = []
-    faces = detect_faces(image_path)
+    advisory_notes = []
+    face_result = detect_faces(image_path)
+    faces = face_result["faces"]
 
-    if width < 256 or height < 256:
+    if inspection["image_type"] != NATURAL_RGB:
+        warnings.append(
+            "The uploaded file does not look like a normal colour RGB photograph. Use a close-up visible-light foot/wound image."
+        )
+    if metrics["width"] < 256 or metrics["height"] < 256:
         warnings.append("Image resolution is too low for the FUSeg segmentation model.")
+    if metrics["blur_score"] < 25:
+        warnings.append("The image appears too blurred for reliable segmentation. Retake it in focus.")
+    if not 35 <= metrics["mean_brightness"] <= 225:
+        warnings.append("Image brightness is outside the preferred range. Retake it with more even lighting.")
+    if metrics["intensity_variation"] < 12:
+        warnings.append("Image contrast is too low for reliable segmentation.")
     if faces:
         warnings.append(
             "A face/person scene was detected. FUSeg accepts a close-up foot/wound image, not a full-person photograph."
         )
+    if face_result["warning"]:
+        advisory_notes.append(face_result["warning"])
 
     is_valid = len(warnings) == 0
     return {
         "is_valid": is_valid,
-        "status": "PASS" if is_valid else "WRONG INPUT TYPE",
+        "status": "PASS" if is_valid else "RETAKE / WRONG INPUT",
         "message": (
-            "RGB image passed the basic FUSeg applicability gate."
+            "RGB image passed the basic FUSeg applicability and quality gate."
             if is_valid
-            else "Ulcer segmentation was blocked because the image is outside the model's intended input scope."
+            else "Ulcer segmentation was blocked because the image did not satisfy the visible-image input contract."
         ),
-        "warnings": warnings,
+        "warnings": warnings + advisory_notes,
+        "blocking_warnings": warnings,
+        "advisory_notes": advisory_notes,
         "metrics": {
-            "width": int(width),
-            "height": int(height),
+            **metrics,
             "faces_detected": len(faces),
+            "face_check_available": face_result["available"],
         },
         "recommended_pipeline": "FUSeg close-up RGB wound/ulcer-like segmentation",
         "safety_note": (
-            "This gate reduces obvious misuse but does not prove that the image matches the training distribution."
+            "This gate reduces obvious misuse but does not prove that the image matches the training distribution or that the model output is clinically valid."
         ),
     }
 
 
 def validate_standup_pair(rgb_path, thermal_path):
     thermal_validation = validate_standup_thermal(thermal_path)
+    rgb_inspection = inspect_image(rgb_path)
     rgb = cv2.imread(str(rgb_path), cv2.IMREAD_COLOR)
     thermal = cv2.imread(str(thermal_path), cv2.IMREAD_COLOR)
     warnings = list(thermal_validation.get("warnings", []))
 
     if rgb is None:
         warnings.append("Matching RGB image could not be read.")
+    elif rgb_inspection.get("image_type") != NATURAL_RGB:
+        warnings.append("The first STANDUP input does not look like a normal plantar RGB photograph.")
     if thermal is None:
         warnings.append("Matching thermal image could not be read.")
 
@@ -267,6 +311,7 @@ def validate_standup_pair(rgb_path, thermal_path):
         ),
         "warnings": warnings,
         "thermal_validation": thermal_validation,
+        "rgb_validation": rgb_inspection,
         "recommended_pipeline": "STANDUP RGB + monochrome thermal fusion",
         "safety_note": (
             "Filename or visual checks cannot prove that two images belong to the same participant and capture time."

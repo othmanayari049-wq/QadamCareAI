@@ -1,10 +1,13 @@
 # QadamCare AI prototype runtime and research dependencies
 # Python 3.11 or 3.12 is recommended. Pin exact versions before any reproducible release.
+# Install exactly one OpenCV distribution. The Streamlit app does not require cv2.imshow,
+# so the headless wheel avoids conflicts while retaining image processing and Haar cascades.
 
 torch
 torchvision
-opencv-python
-albumentations
+opencv-python-headless==4.11.0.86
+albumentations==1.4.24
+albucore==0.0.23
 segmentation-models-pytorch
 matplotlib
 pandas
