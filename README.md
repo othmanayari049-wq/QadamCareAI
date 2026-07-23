@@ -5,7 +5,15 @@
 QadamCare AI is an educational engineering and research prototype developed at Qatar University. It combines computer vision, image-quality checks, workflow-specific input validation, relative thermal visualisation, clinician-entered context, local LLM/VLM documentation, and structured PDF reporting.
 
 > [!IMPORTANT]
-> QadamCare AI is **not a medical device and not a diagnostic system**. It does not diagnose diabetes, diabetic-foot ulcer, infection, ischemia, osteomyelitis, wound depth, severity, future ulcer location, or treatment need. Every result requires qualified clinician review.
+> QadamCare AI is **not a medical device and not a standalone diagnostic system**. It does not independently diagnose diabetes, diabetic-foot ulcer, infection, ischemia, osteomyelitis, wound depth, severity, future ulcer location, or treatment need. The software prepares image evidence and structured documentation; qualified clinicians remain responsible for diagnosis and clinical decisions.
+
+## Why this matters in Qatar
+
+The International Diabetes Federation estimates that **24.6% of adults in Qatar—approximately 409,300 people aged 20–79—were living with diabetes in 2024**. This is about one in four adults.
+
+QadamCare is designed to organize the original images, image-quality results, measurements, trained-model outputs, and local LLM/VLM notes into one reviewable case. This can reduce disconnected review steps and help a clinician move through the available evidence more efficiently without replacing clinical assessment or blood testing.
+
+Source: [International Diabetes Federation — Qatar country data](https://idf.org/our-network/regions-and-members/middle-east-and-north-africa/members/qatar/)
 
 ## Current status
 
@@ -14,9 +22,9 @@ QadamCare AI is an educational engineering and research prototype developed at Q
 | Visible ulcer-like segmentation | Implemented; prototype validation only |
 | STANDUP paired RGB + grayscale thermal pattern model | Implemented; one patient-wise split only |
 | Relative thermal monitoring-zone mapping | Implemented; relative image intensity only |
-| Pseudo-colour thermal research workflow | Implemented as a separate legacy/research path |
-| R0/R1/R2 risk-pattern classification | Experimental and not used as a reliable primary output |
-| Local LLM/VLM documentation | Implemented through Ollama; generated text may be wrong |
+| Pseudo-colour thermal research workflow | Research code retained; disabled in the professional interface pending verified dataset/checkpoint provenance |
+| R0/R1/R2 future-ulcer-risk classification | Experimental; Macro-F1 0.4120; excluded from the reliable primary system |
+| Local LLM/VLM documentation | Implemented through Ollama; generated text may be wrong and requires human review |
 | Clinical validation | Not completed |
 | Regulatory approval | None |
 
@@ -26,18 +34,20 @@ The application deliberately routes each image type to a compatible pipeline. Th
 
 1. **Visible ulcer analysis**
    - Input: close-up normal RGB foot/wound image
-   - Output: ulcer-like segmentation mask, overlay, region count, image area measurements
+   - Output: ulcer-like segmentation mask, overlay, region count, and image-area measurements
    - Model family: FUSeg-derived segmentation
 
 2. **STANDUP paired analysis**
    - Input: matching plantar RGB image and grayscale/monochrome thermal image
-   - Output: dataset-defined healthy/control-like vs diabetic-foot-like image pattern, plus relative thermal monitoring zones
+   - Output: control-like versus diabetic-participant-like dataset-pattern scores, plus relative thermal monitoring zones
+   - Confidence meaning: the two softmax scores sum to 1 and indicate confidence in dataset resemblance, **not the probability that a patient has diabetes**
    - Model family: dual-branch EfficientNet-B0 fusion
 
 3. **Pseudo-colour thermal research analysis**
    - Input: pseudo-coloured plantar thermogram
-   - Output: thermal-only dataset-pattern output, attention visualisation, relative intensity measurements
+   - Research output: thermal-only dataset-pattern output, attention visualisation, and relative intensity measurements
    - Model family: separate thermal research model
+   - Status: disabled in `app_qadamcare_pro.py` until the dataset and checkpoint provenance can be verified
 
 The app blocks obvious wrong-input cases rather than sending them to an incompatible model.
 
@@ -46,26 +56,40 @@ The app blocks obvious wrong-input cases rather than sending them to an incompat
 - image-format and workflow validation
 - RGB image-quality assessment
 - close-up wound/ulcer-like segmentation
-- STANDUP RGB–thermal fusion classification
+- STANDUP RGB–thermal dataset-pattern comparison
+- labelled softmax confidence proxy for dataset resemblance
 - relative high-, medium-, and low-monitoring thermal-zone maps
 - hotspot ratio and left-right asymmetry measurements
 - clinician-entered findings and follow-up context
-- rule-based complication review pathways
-- local LLM clinical-reasoning documentation
-- local VLM visual documentation
+- deterministic complication-review pathways
+- local LLM structured case-report drafting
+- local VLM visual-evidence documentation
 - Markdown, standard PDF, and comprehensive AI-integrated PDF reports
 - explicit separation between user-entered history, deterministic measurements, trained-model outputs, and generative AI text
+
+## How AI supports clinician review
+
+QadamCare follows a controlled evidence chain:
+
+1. The image models produce the RGB mask, relative measurements, and STANDUP dataset-pattern scores.
+2. The local VLM reviews the supplied images and drafts a clearly labelled visual-evidence note.
+3. The local LLM organizes verified structured evidence into a clearly labelled case-report draft.
+4. The clinician reviews the original evidence and AI-generated text, then confirms the interpretation using medical history, examination, and appropriate clinical tests.
+
+The LLM and VLM **do not create new verified clinical facts and do not confirm a diagnosis**. They are documentation and review-support components.
 
 ## Interpretation rules
 
 The project uses strict wording rules:
 
 - A **healthy/control-like image pattern** does not prove that a person is healthy and does not exclude diabetes.
-- A **diabetic-foot-like image pattern** does not diagnose diabetes or diabetic foot.
-- Diabetes history is entered by the user or clinician; it is not inferred from images.
+- A **diabetic-participant-like image pattern** does not diagnose diabetes or diabetic foot.
+- The two softmax scores are confidence proxies for dataset resemblance; they are not calibrated disease probabilities.
+- Diabetes history is entered by the user or clinician; it is not inferred as a confirmed fact from images.
 - Thermal colours or pixel intensity are not calibrated temperature measurements unless raw calibrated thermal values are available.
 - High-monitoring zones indicate relative image-intensity patterns for review; they do not predict exactly where a future ulcer will occur.
 - LLM/VLM sections are generated documentation and can be incomplete, inconsistent, or incorrect.
+- Medical confirmation still requires qualified clinical assessment and appropriate testing.
 
 ## Model summary
 
@@ -97,14 +121,31 @@ These are engineering validation results, not clinical-performance claims.
 - patient-wise 70/15/15 split
 - test split: 65 paired samples from 35 patient/groups
 - one local split produced 100% accuracy, sensitivity, specificity, F1, and ROC-AUC
+- exact internal metric value: 1.0000
 
-That perfect result must be interpreted cautiously because it comes from a small dataset and one split. Grouped cross-validation, multiple seeds, dataset-bias investigation, and external validation are still required.
+The 100% result is promising on one small internal split, but it does **not** mean 100% certainty for a new patient. Grouped cross-validation, multiple seeds, dataset-bias investigation, calibration, Qatar-focused clinical testing, and external validation are still required.
 
-### R0/R1/R2 experimental module
+### R0/R1/R2 experimental future-ulcer-risk module
 
-The best early three-class result remained weak (approximately 41% macro-F1). It is therefore documented as an experimental research extension and is not presented as a reliable clinical or primary product capability.
+We tested the R0/R1/R2 module to classify future-ulcer risk into three levels, but it achieved a **Macro-F1 of only 0.4120**. Because this performance was not reliable enough, we excluded the module from the final primary system and retained it only as a documented research extension.
+
+The module must not be presented as detecting or predicting a future ulcer. It can be reconsidered only if later work uses suitable longitudinal outcome data and demonstrates materially stronger external validation.
 
 See [MODEL_CARD.md](MODEL_CARD.md) for detailed model-specific limitations.
+
+## Future clinical-development roadmap
+
+The following items are future improvements and are **not implemented clinical capabilities**:
+
+- clinician-led Qatar clinical validation
+- calibrated screening-support confidence using larger representative cohorts
+- patient-filtered RAG with dated and cited records
+- secure EHR integration and longitudinal visit comparison
+- 3D wound-depth and volume measurement
+- clinician correction and feedback loop
+- external validation, fairness testing, and regulatory assessment
+
+The intended future role is supervised clinical decision support: AI organizes and prioritizes evidence, while the clinician remains responsible for diagnosis, treatment, and triage.
 
 ## Application entry point
 
